@@ -3,6 +3,7 @@ package com.example.stopwatch;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -23,10 +24,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView textViewLap2;
     private TextView textViewLap3;
     private long lapHolder;
-    private String lapDifferences;
     private String laps;
     private int lapNumber;
     private long stopTime;
+    private String lapDouble;
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
         lapNumber = 1;
         stopTime = 0;
         buttonLap.setEnabled(false);
+        textViewLap1.setText("");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     @Override
@@ -108,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 chronometer.setBase(SystemClock.elapsedRealtime());
                 stopTime = chronometer.getBase();
+                buttonStartStop.setChecked(false);
+                textViewLap1.setText("");
+                textViewLap2.setText("");
+                textViewLap3.setText("");
+                lapNumber = 1;
             }
         });
 
@@ -115,10 +123,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 laps = chronometer.getText().toString();
-                if (textViewLap1.getVisibility() == view.GONE){
-                    textViewLap1.setVisibility(View.VISIBLE);
-                    textViewLap2.setVisibility(View.VISIBLE);
-                    textViewLap3.setVisibility(View.VISIBLE);
+                if (textViewLap1.getText().toString().equals("")){
 
                     textViewLap1.setText("" + lapNumber);
                     textViewLap2.setText("" + laps);
@@ -127,16 +132,18 @@ public class MainActivity extends AppCompatActivity {
                     lapHolder = SystemClock.elapsedRealtime();
                 }
                 else if (textViewLap3.getText().toString().equals("")){
-                    textViewLap1.setText(textViewLap1 + "" + lapNumber);
-                    textViewLap2.setText(textViewLap2 + "" + laps);
-                    textViewLap3.setText(textViewLap3 + "" + SystemClock.elapsedRealtime());
+                    textViewLap1.setText(textViewLap1.getText() + "\n" + lapNumber);
+                    textViewLap2.setText(textViewLap2.getText() + "\n" + laps);
+                    lapDouble = String.format("%.2f", (SystemClock.elapsedRealtime() - lapHolder)/1000.0);
+                    textViewLap3.setText(textViewLap3.getText() + "\n" + lapDouble + "s");
                     lapNumber++;
                     lapHolder = SystemClock.elapsedRealtime();
                 }
                 else{
                     textViewLap1.setText(textViewLap1.getText() + "\n" + lapNumber);
                     textViewLap2.setText(textViewLap2.getText() + "\n" + laps);
-                    textViewLap3.setText(textViewLap3.getText() + "\n" + (SystemClock.elapsedRealtime() - lapHolder));
+                    lapDouble = String.format("%.2f", (SystemClock.elapsedRealtime() - lapHolder)/1000.0);
+                    textViewLap3.setText(textViewLap3.getText() + "\n" + lapDouble + "s");
                     lapNumber++;
                     lapHolder = SystemClock.elapsedRealtime();
 
