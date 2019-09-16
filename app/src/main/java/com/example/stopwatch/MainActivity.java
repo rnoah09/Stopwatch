@@ -1,9 +1,8 @@
 package com.example.stopwatch;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
-import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -11,13 +10,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button buttonLap;
+    private ScrollView lapList;
     private ToggleButton buttonStartStop;
+    private Boolean startStop;
     private Button buttonReset;
     private Chronometer chronometer;
     private TextView textViewLap1;
@@ -28,8 +30,17 @@ public class MainActivity extends AppCompatActivity {
     private int lapNumber;
     private long stopTime;
     private String lapDouble;
+    private String textView1PlaceHolder;
+    private String textView2PlaceHolder;
+    private String textView3PlaceHolder;
+    private long chronometerPlaceHolder;
+    private long chronometerStopTimePlaceHolder;
+    private int lapNumberPlaceHolder;
+    private long lapHolderPlaceHolder;
+    private boolean firstTime;
 
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String START_STOP_KEY = "StartStopKey";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +50,52 @@ public class MainActivity extends AppCompatActivity {
         wireWidgets();
         setListeners();
         lapNumber = 1;
-        stopTime = 0;
+        stopTime = SystemClock.elapsedRealtime();
         buttonLap.setEnabled(false);
         textViewLap1.setText("");
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        if (savedInstanceState != null){
+            startStop = savedInstanceState.getBoolean("START_STOP_KEY");
+            buttonStartStop.setChecked(startStop);
+            textView1PlaceHolder = savedInstanceState.getString("textView1PlaceHolder");
+            textView2PlaceHolder = savedInstanceState.getString("textView2PlaceHolder");
+            textView3PlaceHolder = savedInstanceState.getString("textView3PlaceHolder");
+            chronometerPlaceHolder = savedInstanceState.getLong("chronometerPlaceHolder");
+            lapNumber = savedInstanceState.getInt("lapNumberPlaceHolder");
+            lapHolder = savedInstanceState.getLong("lapHolderPlaceHolder");
+            chronometerStopTimePlaceHolder = savedInstanceState.getLong("chronometerStopTimePlaceHolder");
+            chronometer.setBase(chronometerPlaceHolder + (SystemClock.elapsedRealtime() - chronometerStopTimePlaceHolder));
+        }
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            if(lapList.getVisibility() == View.GONE){
+                lapList.setVisibility(View.VISIBLE);
+                buttonLap.setVisibility(View.VISIBLE);
+                textViewLap1.setVisibility(View.VISIBLE);
+                textViewLap2.setVisibility(View.VISIBLE);
+                textViewLap3.setVisibility(View.VISIBLE);
+            }
+            textViewLap1.setText(textView1PlaceHolder);
+            textViewLap2.setText(textView2PlaceHolder);
+            textViewLap3.setText(textView3PlaceHolder);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("textView1PlaceHolder", textView1PlaceHolder);
+        savedInstanceState.putString("textView2PlaceHolder", textView2PlaceHolder);
+        savedInstanceState.putString("textView3PlaceHolder", textView3PlaceHolder);
+        savedInstanceState.putLong("chronometerPlaceHolder", chronometerPlaceHolder);
+        if (buttonStartStop.isChecked() == true){
+            chronometerStopTimePlaceHolder = SystemClock.elapsedRealtime();
+        }
+        savedInstanceState.putLong("chronometerStopTimePlaceHolder", chronometerStopTimePlaceHolder);
+        lapNumberPlaceHolder = lapNumber;
+        savedInstanceState.putInt("lapNumberPlaceHolder", lapNumberPlaceHolder);
+        lapHolderPlaceHolder = lapHolder;
+        savedInstanceState.putLong("lapHolderPlaceHolder", lapHolderPlaceHolder);
+        savedInstanceState.putBoolean(START_STOP_KEY, startStop);
+
     }
 
     @Override
@@ -84,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
         textViewLap1 = findViewById(R.id.textview_lap1_main);
         textViewLap2 = findViewById(R.id.textview_lap2_main);
         textViewLap3 = findViewById(R.id.textview_lap3_main);
+        lapList = findViewById(R.id.scrollView_laps_main);
 
     }
 
@@ -94,14 +148,24 @@ public class MainActivity extends AppCompatActivity {
                 if (b){
                     if (stopTime != 0){
                         chronometer.setBase(chronometer.getBase() + (SystemClock.elapsedRealtime() - stopTime));
+                        chronometerPlaceHolder = chronometer.getBase();
+                    }
+                    if (firstTime == true){
+                        chronometer.setBase(SystemClock.elapsedRealtime());
                     }
                     chronometer.start();
+                    firstTime = false;
                     buttonLap.setEnabled(true);
+                    startStop = true;
                 }
                 else {
                     chronometer.stop();
                     buttonLap.setEnabled(false);
                     stopTime = SystemClock.elapsedRealtime();
+                    chronometerStopTimePlaceHolder = stopTime;
+                    chronometerPlaceHolder = chronometer.getBase();
+                    startStop = false;
+                    firstTime = false;
                 }
             }
         });
@@ -116,6 +180,13 @@ public class MainActivity extends AppCompatActivity {
                 textViewLap2.setText("");
                 textViewLap3.setText("");
                 lapNumber = 1;
+                textView1PlaceHolder = "";
+                textView2PlaceHolder = "";
+                textView3PlaceHolder = "";
+                chronometerStopTimePlaceHolder = stopTime;
+                lapHolder = SystemClock.elapsedRealtime();
+                lapHolderPlaceHolder = lapHolder;
+
             }
         });
 
@@ -130,6 +201,11 @@ public class MainActivity extends AppCompatActivity {
                     textViewLap3.setText("");
                     lapNumber++;
                     lapHolder = SystemClock.elapsedRealtime();
+
+                    textView1PlaceHolder = textViewLap1.getText().toString();
+                    textView2PlaceHolder = textViewLap2.getText().toString();
+                    textView3PlaceHolder = textViewLap3.getText().toString();
+
                 }
                 else if (textViewLap3.getText().toString().equals("")){
                     textViewLap1.setText(textViewLap1.getText() + "\n" + lapNumber);
@@ -138,6 +214,11 @@ public class MainActivity extends AppCompatActivity {
                     textViewLap3.setText(textViewLap3.getText() + "\n" + lapDouble + "s");
                     lapNumber++;
                     lapHolder = SystemClock.elapsedRealtime();
+
+                    textView1PlaceHolder = textViewLap1.getText().toString();
+                    textView2PlaceHolder = textViewLap2.getText().toString();
+                    textView3PlaceHolder = textViewLap3.getText().toString();
+
                 }
                 else{
                     textViewLap1.setText(textViewLap1.getText() + "\n" + lapNumber);
@@ -146,6 +227,10 @@ public class MainActivity extends AppCompatActivity {
                     textViewLap3.setText(textViewLap3.getText() + "\n" + lapDouble + "s");
                     lapNumber++;
                     lapHolder = SystemClock.elapsedRealtime();
+
+                    textView1PlaceHolder = textViewLap1.getText().toString();
+                    textView2PlaceHolder = textViewLap2.getText().toString();
+                    textView3PlaceHolder = textViewLap3.getText().toString();
 
                 }
             }
